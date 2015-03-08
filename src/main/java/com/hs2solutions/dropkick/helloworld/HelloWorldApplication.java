@@ -1,11 +1,10 @@
 package com.hs2solutions.dropkick.helloworld;
 
-import com.hs2solutions.dropkick.helloworld.health.TemplateHealthCheck;
-import com.hs2solutions.dropkick.helloworld.resources.HelloWorldResource;
-
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+
+import com.hs2solutions.dropkick.helloworld.resources.HelloWorldResource;
 
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
 
@@ -20,22 +19,15 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
 	@Override
 	public void initialize(Bootstrap<HelloWorldConfiguration> arg0) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void run(HelloWorldConfiguration configuration,
 			Environment environment) throws Exception {
 
-		final HelloWorldResource resource = new HelloWorldResource(
+		HelloWorldResource resource = new HelloWorldResource(
 				configuration.getTemplate(), configuration.getDefaultName());
-		environment.jersey().register(resource);
-
-		final TemplateHealthCheck healthCheck = new TemplateHealthCheck(
-				configuration.getTemplate());
-		environment.healthChecks().register("template", healthCheck);
+		
 		environment.jersey().register(resource);
 	}
-
 }
