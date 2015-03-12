@@ -1,6 +1,8 @@
 package com.hs2solutions.dropkick.helloworld;
 
 import io.dropwizard.Application;
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -19,7 +21,17 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 	}
 
 	@Override
-	public void initialize(Bootstrap<HelloWorldConfiguration> arg0) {
+	public void initialize(Bootstrap<HelloWorldConfiguration> bootstrap) {
+		// A bundle is a reusable group of functionality, used to define
+		// an application’s behavior. Part of what this bundle does is to add a
+		// DbCommand to the application, which allows you to perform migration.
+		bootstrap.addBundle(new MigrationsBundle<HelloWorldConfiguration>() {
+			@Override
+			public DataSourceFactory getDataSourceFactory(
+					HelloWorldConfiguration configuration) {
+				return configuration.getDataSourceFactory();
+			}
+		});
 	}
 
 	@Override
