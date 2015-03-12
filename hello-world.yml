@@ -3,8 +3,34 @@ defaultName: Stranger
       
 server:
   applicationConnectors:
+    - type: http
+      port: 8080
     - type: https
       port: 8443
       keyStorePath: example.keystore
       keyStorePassword: example
       validateCerts: false
+  adminConnectors:
+    - type: http
+      port: 8081
+    - type: https
+      port: 8444
+      keyStorePath: example.keystore
+      keyStorePassword: example
+      validateCerts: false
+
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
+  loggers:
+    com.hs2solutions.dropkick: DEBUG
+    org.hibernate.SQL: ALL
+  appenders:
+    - type: console
+    - type: file
+      threshold: DEBUG
+      logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+      currentLogFilename: ./target/application.log
+      archivedLogFilenamePattern: ./target/application-%d{yyyy-MM-dd}.log
+      archivedFileCount: 7
+      timeZone: UTC
