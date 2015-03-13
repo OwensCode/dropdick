@@ -2,14 +2,24 @@ package com.hs2solutions.dropkick.helloworld;
 
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
+import com.hs2solutions.dropkick.helloworld.core.Person;
+import com.hs2solutions.dropkick.helloworld.db.PersonDAO;
 import com.hs2solutions.dropkick.helloworld.health.TemplateHealthCheck;
 import com.hs2solutions.dropkick.helloworld.resources.HelloWorldResource;
+import com.hs2solutions.dropkick.helloworld.resources.PeopleResource;
 
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
+
+	private final HibernateBundle<HelloWorldConfiguration> hibernateBundle;
+
+	public HelloWorldApplication() {
+		this.hibernateBundle = instantiateHibernateBundle();
+	}
 
 	public static void main(String[] args) throws Exception {
 		new HelloWorldApplication().run(args);
@@ -22,30 +32,58 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
 	@Override
 	public void initialize(Bootstrap<HelloWorldConfiguration> bootstrap) {
-		// A bundle is a reusable group of functionality, used to define
-		// an application’s behavior. Part of what this bundle does is to add a
-		// DbCommand to the application, which allows you to perform migration.
-		bootstrap.addBundle(new MigrationsBundle<HelloWorldConfiguration>() {
-			@Override
-			public DataSourceFactory getDataSourceFactory(
-					HelloWorldConfiguration configuration) {
-				return configuration.getDataSourceFactory();
-			}
-		});
+		bootstrap.addBundle(instantiateMigrationsBundle());
+		bootstrap.addBundle(this.hibernateBundle);
 	}
 
 	@Override
 	public void run(HelloWorldConfiguration configuration,
 			Environment environment) throws Exception {
 
+		startHelloWorldResource(configuration, environment);
+		startPeopleResource(configuration, environment);
+	}
+
+	private void startHelloWorldResource(HelloWorldConfiguration configuration,
+			Environment environment) {
+
 		HelloWorldResource resource = new HelloWorldResource(
 				configuration.getTemplate(), configuration.getDefaultName());
-
+		
 		environment.jersey().register(resource);
 
 		TemplateHealthCheck healthCheck = new TemplateHealthCheck(
 				configuration.getTemplate());
 
 		environment.healthChecks().register("template", healthCheck);
+	}
+
+	private void startPeopleResource(HelloWorldConfiguration configuration,
+			Environment environment) {
+
+		final PersonDAO dao = new PersonDAO(hibernateBundle.getSessionFactory());
+
+		environment.jersey().register(new PeopleResource(dao));
+
+	}
+
+	private MigrationsBundle<HelloWorldConfiguration> instantiateMigrationsBundle() {
+		return new MigrationsBundle<HelloWorldConfiguration>() {
+			@Override
+			public DataSourceFactory getDataSourceFactory(
+					HelloWorldConfiguration configuration) {
+				return configuration.getDataSourceFactory();
+			}
+		};
+	}
+
+	private HibernateBundle<HelloWorldConfiguration> instantiateHibernateBundle() {
+		return new HibernateBundle<HelloWorldConfiguration>(Person.class) {
+			@Override
+			public DataSourceFactory getDataSourceFactory(
+					HelloWorldConfiguration configuration) {
+				return configuration.getDataSourceFactory();
+			}
+		};
 	}
 }
