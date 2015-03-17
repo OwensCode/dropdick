@@ -6,8 +6,12 @@ import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.auth.AuthFactory;
+import io.dropwizard.auth.basic.BasicAuthFactory;
 
+import com.hs2solutions.dropkick.helloworld.auth.ExampleAuthenticator;
 import com.hs2solutions.dropkick.helloworld.core.Person;
+import com.hs2solutions.dropkick.helloworld.core.User;
 import com.hs2solutions.dropkick.helloworld.db.PersonDAO;
 import com.hs2solutions.dropkick.helloworld.health.TemplateHealthCheck;
 import com.hs2solutions.dropkick.helloworld.resources.HelloWorldResource;
@@ -40,8 +44,16 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 	public void run(HelloWorldConfiguration configuration,
 			Environment environment) throws Exception {
 
+		setupAuthentication(environment);
 		startHelloWorldResource(configuration, environment);
 		startPeopleResource(configuration, environment);
+	}
+	
+	private void setupAuthentication(Environment environment) {
+		environment.jersey().register(
+				AuthFactory.binder(new BasicAuthFactory<User>(
+						new ExampleAuthenticator(), "SECRET REALM",
+						User.class)));
 	}
 
 	private void startHelloWorldResource(HelloWorldConfiguration configuration,

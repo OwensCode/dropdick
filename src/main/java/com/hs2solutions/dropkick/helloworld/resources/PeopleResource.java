@@ -1,5 +1,6 @@
 package com.hs2solutions.dropkick.helloworld.resources;
 
+import io.dropwizard.auth.Auth;
 import io.dropwizard.hibernate.UnitOfWork;
 
 import javax.ws.rs.GET;
@@ -10,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.codahale.metrics.annotation.Timed;
 import com.hs2solutions.dropkick.helloworld.core.Person;
+import com.hs2solutions.dropkick.helloworld.core.User;
 import com.hs2solutions.dropkick.helloworld.db.PersonDAO;
 
 import java.util.List;
@@ -26,7 +28,7 @@ public class PeopleResource {
 
     @POST
     @UnitOfWork
-    public Person createPerson(Person person) {
+    public Person createPerson(@Auth User user, Person person) {
         long id = personDao.create(person);
         return personDao.findById(id);
     }
